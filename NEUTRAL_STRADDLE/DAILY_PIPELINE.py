@@ -29,7 +29,7 @@ def log_msg(msg: str):
     except Exception as e:
         print(f"Failed to write to log: {e}")
 
-def run_script(script_path: Path, args: list = None) -> bool:
+def run_script(script_path: Path, args: list | None = None) -> bool:
     """Run a python script and stream its output to console/log."""
     if not script_path.exists():
         log_msg(f"❌ ERROR: Script not found -> {script_path}")
@@ -52,13 +52,14 @@ def run_script(script_path: Path, args: list = None) -> bool:
         )
         
         # Stream output line by line
-        for line in process.stdout:
-            # Clean up newlines for printing
-            clean_line = line.rstrip()
-            print(clean_line)
-            # Also write to log
-            with open(LOG_FILE, "a", encoding="utf-8") as f:
-                print(clean_line, file=f)
+        if process.stdout is not None:
+            for line in process.stdout:
+                # Clean up newlines for printing
+                clean_line = line.rstrip()
+                print(clean_line)
+                # Also write to log
+                with open(LOG_FILE, "a", encoding="utf-8") as f:
+                    print(clean_line, file=f)
                 
         process.wait()
         

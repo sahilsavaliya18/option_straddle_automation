@@ -51,8 +51,10 @@ The core execution logic is written in C++ for maximum speed (~10-15ms per run v
 Requires MSVC (Visual Studio Build Tools) and C++17 support.
 
 ```bash
-cd NEUTRAL_STRADDLE/cpp_engine/build
-cmake .. -Dpybind11_DIR=$(python -m pybind11 --cmakedir)
+cd NEUTRAL_STRADDLE/cpp_engine
+mkdir build
+cd build
+cmake .. "-Dpybind11_DIR=$(python -m pybind11 --cmakedir)"
 cmake --build . --config Release
 ```
 This generates the `.pyd` module inside `NEUTRAL_STRADDLE/`.
