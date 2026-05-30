@@ -1,0 +1,10 @@
+DIRECTIONAL_STRADDLE/
+DATA/
+RESULT/
+WORKING/
+PATHS_REFERENCE.txt
+.vscode/
+.qoder/
+__pycache__/
+*.pyd
+*.log
