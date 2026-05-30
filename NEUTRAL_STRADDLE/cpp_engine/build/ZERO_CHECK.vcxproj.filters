@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="D:\OneDrive\Desktop\pinecode rsi\PYTHON AUTOMATE\NSE DATA automation\NEW_PROJECT\NEUTRAL_STRADDLE\cpp_engine\build\CMakeFiles\2d2e86641ba3deff731d1b265dc2274a\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{580F9E85-3A62-3FA0-900E-E512BDE3AC4B}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
