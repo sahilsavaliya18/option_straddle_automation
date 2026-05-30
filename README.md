@@ -25,13 +25,13 @@ The strategy executes a long straddle by buying both Call (CE) and Put (PE) opti
 
 ```
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│  NSE Website    │────▶│  DATA_FETCH_AUTO │────▶│  NEUTRAL ENGINE │
+│  NSE Website    │───> │  DATA_FETCH_AUTO │────>│  NEUTRAL ENGINE │
 │  (option-chain) │     │  • Spot CSV      │     │  (C++ & Python) │
 │                 │     │  • Strike CSVs   │     │  • Neutral Qty  │
 └─────────────────┘     └──────────────────┘     │  • P&L calc     │
-                                                  └────────┬────────┘
-                                                           │
-                           ┌───────────────────────────────┘
+                                                 └────────┬────────┘
+                                                          │
+                           ┌──────────────────────────────┘
                            ▼
                   ┌─────────────────┐
                   │  RESULT/NEUTRAL │
