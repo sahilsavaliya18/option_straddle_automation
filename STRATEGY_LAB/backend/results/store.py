@@ -73,6 +73,21 @@ def init_db():
             ON backtests(backtest_date);
         CREATE INDEX IF NOT EXISTS idx_trades_backtest
             ON trades(backtest_id);
+
+        CREATE TABLE IF NOT EXISTS agent_insights (
+            id                INTEGER PRIMARY KEY AUTOINCREMENT,
+            analysis_date     TEXT    NOT NULL,
+            executive_summary TEXT    NOT NULL,
+            top_strategy      TEXT    NOT NULL,
+            worst_strategy    TEXT    NOT NULL,
+            regime_notes      TEXT,
+            risk_assessment   TEXT,
+            ui_review         TEXT,
+            raw_chat_json     TEXT,
+            created_at        TEXT    NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE INDEX IF NOT EXISTS idx_agent_insights_date
+            ON agent_insights(analysis_date);
     """)
     conn.commit()
     conn.close()
@@ -253,3 +268,48 @@ def delete_backtest(backtest_id: int) -> bool:
     deleted = cursor.rowcount > 0
     conn.close()
     return deleted
+
+
+def save_agent_insight(insight: dict) -> int:
+    """Save an AI agent executive briefing/insight to SQLite."""
+    init_db()
+    conn = _get_conn()
+    cursor = conn.execute(
+        """INSERT INTO agent_insights
+           (analysis_date, executive_summary, top_strategy, worst_strategy,
+            regime_notes, risk_assessment, ui_review, raw_chat_json)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+        (
+            insight.get("analysis_date", datetime.now().strftime("%d_%m_%Y")),
+            insight.get("executive_summary", ""),
+            insight.get("top_strategy", ""),
+            insight.get("worst_strategy", ""),
+            insight.get("regime_notes", ""),
+            insight.get("risk_assessment", ""),
+            insight.get("ui_review", ""),
+            json.dumps(insight.get("raw_chat", {})) if isinstance(insight.get("raw_chat"), (dict, list)) else str(insight.get("raw_chat", "")),
+        ),
+    )
+    conn.commit()
+    insight_id = cursor.lastrowid
+    conn.close()
+    return insight_id
+
+
+def get_agent_insights(limit: int = 30) -> list[dict]:
+    """Retrieve historical agent briefings."""
+    init_db()
+    conn = _get_conn()
+    rows = conn.execute(
+        "SELECT * FROM agent_insights ORDER BY created_at DESC LIMIT ?",
+        (limit,),
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_latest_agent_insight() -> dict | None:
+    """Get the most recent agent briefing."""
+    insights = get_agent_insights(limit=1)
+    return insights[0] if insights else None
+

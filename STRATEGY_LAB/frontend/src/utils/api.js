@@ -58,3 +58,30 @@ export const fetchDataDates = (month) => {
 export const fetchDataStatus = () => apiFetch('/data/status');
 
 export const healthCheck = () => apiFetch('/health');
+
+// ── Agents ──────────────────────────────────────────────────────────────────
+
+export const fetchTeam = () => apiFetch('/agents/team');
+
+export const sendAgentChat = (message, targetAgent = null, apiKey = null) =>
+  apiFetch('/agents/chat', {
+    method: 'POST',
+    body: JSON.stringify({ message, target_agent: targetAgent, api_key: apiKey }),
+  });
+
+export const runDailyAgentWorkflow = (date = "27_08_2026", capital = 500000, apiKey = null) =>
+  apiFetch('/agents/daily-run', {
+    method: 'POST',
+    body: JSON.stringify({ date, capital, api_key: apiKey }),
+  });
+
+export const fetchAgentInsights = (limit = 20) =>
+  apiFetch(`/agents/insights?limit=${limit}`);
+
+export const reviewUiComponent = (componentName = "RunBacktest") =>
+  apiFetch('/agents/review-ui', {
+    method: 'POST',
+    body: JSON.stringify({ component_name: componentName }),
+  });
+
+export const checkAgentsHealth = () => apiFetch('/agents/health');

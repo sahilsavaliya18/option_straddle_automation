@@ -9,6 +9,12 @@ const navItems = [
     ],
   },
   {
+    section: 'Intelligence',
+    items: [
+      { to: '/ai-desk', label: 'AI Trading Desk', icon: '✦' },
+    ],
+  },
+  {
     section: 'Analysis',
     items: [
       { to: '/run', label: 'Run Backtest', icon: '▷' },

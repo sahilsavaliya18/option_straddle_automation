@@ -7,6 +7,7 @@ import RunBacktest from './pages/RunBacktest';
 import Results from './pages/Results';
 import Compare from './pages/Compare';
 import DataStatus from './pages/DataStatus';
+import AiDesk from './pages/AiDesk';
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
             <Route path="/results" element={<Results />} />
             <Route path="/compare" element={<Compare />} />
             <Route path="/data-status" element={<DataStatus />} />
+            <Route path="/ai-desk" element={<AiDesk />} />
           </Routes>
         </ErrorBoundary>
       </main>

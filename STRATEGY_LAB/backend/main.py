@@ -12,6 +12,7 @@ from .config import CORS_ORIGINS, API_HOST, API_PORT
 from .api.strategies import router as strategies_router
 from .api.results import router as results_router
 from .api.data import router as data_router
+from .api.agents import router as agents_router
 from .results.store import init_db
 
 # Initialize database
@@ -36,6 +37,7 @@ app.add_middleware(
 app.include_router(strategies_router, prefix="/api")
 app.include_router(results_router, prefix="/api")
 app.include_router(data_router, prefix="/api")
+app.include_router(agents_router, prefix="/api")
 
 # Serve frontend static files in production
 frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
