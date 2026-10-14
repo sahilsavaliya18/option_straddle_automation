@@ -22,7 +22,7 @@ import pandas as pd
 #  CONFIG
 # ═══════════════════════════════════════════════════════════════════════════════
 
-ROOT_FOLDER       = str(Path(__file__).parent.parent)
+ROOT_FOLDER       = Path(r"D:\OneDrive\Desktop\pinecode rsi\PYTHON AUTOMATE\NSE DATA automation\NEW_PROJECT")
 
 STRIKES_ABOVE_ATM = 30
 STRIKES_BELOW_ATM = 30

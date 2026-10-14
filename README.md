@@ -1,176 +1,174 @@
-# NIFTY Neutral Long Straddle Backtester
+# NIFTY Options Strategy Lab & Automated Backtesting Platform
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Python: 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)
+![React: 19](https://img.shields.io/badge/React-19-61dafb.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-009688.svg)
+![Tests: 12 Passed](https://img.shields.io/badge/Tests-12%20Passed-brightgreen.svg)
 
-A fully automated, C++-accelerated backtesting pipeline for the **NIFTY Neutral Long Straddle** strategy. This project seamlessly integrates daily NSE option-chain downloading with a high-performance C++ backtest engine, designed to be orchestrated via Windows Task Scheduler.
-
----
-
-## Overview
-
-This project automates the entire daily workflow:
-
-1. **Download**: Fetches NIFTY 50 spot and all CE/PE intraday strike data in parallel from the NSE API (61 strikes, ~6–12 seconds).
-2. **Auto-detect**: Automatically detects the ATM strike from the 9:15 AM spot price and dynamically finds the nearest weekly expiry via the NSE API.
-3. **Backtest**: Executes the Neutral Strategy using a heavily optimized C++ engine (via `pybind11`) — runs in ~10–20ms per day.
-4. **Log & Save**: Results are saved as CSV files in `RESULT/NEUTRAL/<MONTH>/V1/` and a running `auto_run.log` is maintained.
-5. **Schedule**: Exposes a `.ps1` script to trivially schedule daily 18:00 runs via Windows Task Scheduler.
-
-### Neutral Strategy Logic
-
-The strategy executes a long straddle by buying both a Call (CE) and a Put (PE) option at the same ATM strike. The neutral logic ensures **perfect Delta neutrality at entry** by using the minimum of the two legs:
-
-```
-quantity = min(floor(leg_capital / call_price / lot_size), floor(leg_capital / put_price / lot_size))
-qc = quantity × lot_size
-qp = quantity × lot_size
-```
-
-A new trade can be entered every 5 minutes from 09:20, subject to configurable no-trade windows. Each trade exits on Take Profit, Stop Loss, Hold Time expiry, or Market Close — whichever comes first.
+A professional, full-stack options research and backtesting platform for **NIFTY 50 intraday strategies**. The system integrates automated daily NSE option chain acquisition, a multi-strategy backtesting engine with realistic margin and transaction cost modeling, and an interactive React-based analytics dashboard.
 
 ---
 
-## Project Structure
+## 🌟 Key Features
+
+- **12 Pre-Built Strategies**: Full support for single-leg, 2-leg spreads, straddles, strangles, and 4-leg condors/butterflies.
+- **Realistic Cost Model (Indian Market)**: Accounts for flat brokerage (₹20/order), STT on sell side (0.05%), NSE exchange turnover fees (0.053%), 18% GST, stamp duty, SEBI fees, and slippage friction.
+- **SPAN-Like Margin Modeling**: Dynamic margin calculation (~15% of underlying notional for short legs) prevents unrealistic sizing and margin over-allocation.
+- **Data Quality & Execution Tracking**: Real-time monitoring of slot attempts, execution rate, and reason-coded skips (`zero_quantity`, `missing_option_data`, `no_trade_window`).
+- **Interactive Web Dashboard**: React + Vite + Recharts frontend with payoff visualizers, equity curves, strategy comparative matrix, and granular trade-by-trade logs.
+- **Resilient & Tested**: Full test suite verifying P&L math, cost models, and strategy signatures; React `ErrorBoundary` guards against UI crashes.
+- **Automated Data Fetching**: Daily parallel downloader fetching 61 strikes of NIFTY spot + option chain in 6–12 seconds.
+
+---
+
+## 📊 Supported Strategies
+
+| Category | Strategy | Legs | Risk Profile | Ideal Condition |
+|---|---|---|---|---|
+| **Bullish** | Bull Call Spread | 2 (Buy ATM CE + Sell OTM CE) | Defined | Mild Uptrend |
+| | Bull Put Spread | 2 (Sell ATM PE + Buy OTM PE) | Defined | Mild Uptrend |
+| | Buy Call | 1 (Buy ATM CE) | Defined | Strong Momentum Up |
+| **Bearish** | Bear Put Spread | 2 (Buy ATM PE + Sell OTM PE) | Defined | Mild Downtrend |
+| | Bear Call Spread | 2 (Sell ATM CE + Buy OTM CE) | Defined | Mild Downtrend |
+| | Buy Put | 1 (Buy ATM PE) | Defined | Strong Momentum Down |
+| **Neutral** | Short Straddle | 2 (Sell ATM CE + Sell ATM PE) | Undefined | Low Volatility / Sideways |
+| | Short Strangle | 2 (Sell OTM CE + Sell OTM PE) | Undefined | Wide Range-Bound |
+| | Iron Butterfly | 4 (Short Straddle + Long OTM Wings) | Defined | High IV / Low Volatility |
+| | Iron Condor | 4 (Short Strangle + Long OTM Wings) | Defined | High IV / Range-Bound |
+| **Volatile** | Long Straddle | 2 (Buy ATM CE + Buy ATM PE) | Defined | High Volatility Breakout |
+| | Long Strangle | 2 (Buy OTM CE + Buy OTM PE) | Defined | Large Directional Move |
+
+---
+
+## 📁 Repository Structure
 
 ```
 NEW_PROJECT/
-├── NEUTRAL_STRADDLE/          # ← This strategy (public)
-│   ├── STRATEGY_V1.py         # Manual backtest (interactive, set date/expiry by hand)
-│   ├── STRATEGY_V1_AUTO.py    # Automated backtest (auto-detects date, expiry, paths)
-│   ├── DAILY_PIPELINE.py      # Orchestrator: fetch → backtest → log
-│   ├── schedule_daily.ps1     # Windows Task Scheduler setup script
-│   └── cpp_engine/            # C++ source (pybind11)
-│       ├── backtest_engine.cpp
-│       ├── csv_loader.cpp
-│       ├── bindings.cpp
-│       └── CMakeLists.txt
+├── STRATEGY_LAB/                 # 🚀 Web Dashboard & Multi-Strategy Engine
+│   ├── backend/                  # FastAPI backend
+│   │   ├── api/                  # REST endpoints (/strategies, /backtest, /data)
+│   │   ├── engine/               # Python backtesting engine & execution tracker
+│   │   ├── strategies/           # Strategy implementations (all 12 strategies)
+│   │   │   ├── base.py           # Base strategy, P&L logic, margin & cost model
+│   │   │   ├── registry.py       # Strategy registry & metadata
+│   │   │   └── ...
+│   │   ├── results/              # SQLite store (results.db)
+│   │   ├── tests/                # Automated pytest test suite
+│   │   ├── config.py             # Global defaults & cost parameters
+│   │   └── main.py               # FastAPI entry point
+│   ├── frontend/                 # React 19 + Vite dashboard
+│   │   ├── src/
+│   │   │   ├── pages/            # Dashboard, Strategies, RunBacktest, Results, Compare
+│   │   │   ├── components/       # Sidebar, ErrorBoundary, Payoff charts
+│   │   │   └── ...
+│   └── start_dashboard.bat       # One-click launcher (backend + frontend)
 │
-├── DATA_FETCH/                # Shared data downloader (used by both strategies)
-│   ├── DATA_FETCH.py          # Manual fetch (set date by hand)
-│   └── DATA_FETCH_AUTO.py     # Automated fetch (auto-detects today's date)
+├── DATA_FETCH/                   # 📥 Automated NSE Data Downloader
+│   ├── DATA_FETCH.py             # Manual date fetcher
+│   └── DATA_FETCH_AUTO.py        # Automated date & expiry fetcher
 │
-├── DATA/                      # Downloaded market data (gitignored)
-│   └── May_2026_DATA/
-│       └── DD_MM_YYYY/
-│           ├── NIFTY50_spot_DD_MM_YYYY.csv
-│           └── <STRIKE>_DD-MM-YYYY.csv
+├── NEUTRAL_STRADDLE/             # ⚡ C++ Accelerated Engine (Standalone)
+│   ├── STRATEGY_V1_AUTO.py       # Standalone automated straddle runner
+│   ├── cpp_engine/               # C++ pybind11 implementation
+│   └── schedule_daily.ps1        # Windows Task Scheduler orchestrator
 │
-├── RESULT/                    # Backtest output CSVs (gitignored)
-│   └── NEUTRAL/
-│       └── MAY/
-│           └── V1/
-│               └── result_DDMMYYYY.csv
-│
-├── build_engines.bat          # One-click build script for C++ engines
-├── requirements.txt
-├── LICENSE
-└── README.md
+├── SKILLS/                       # 🧠 Pre-mortem & Discovery Frameworks
+├── .gitignore                    # Excludes data, results, node_modules, build artifacts
+├── requirements.txt              # Backend dependencies
+└── README.md                     # Documentation
 ```
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
-### 1. Install Python Dependencies
+### 1. Prerequisites
+- **Python 3.10+** (64-bit)
+- **Node.js 18+** & npm (for the frontend dashboard)
+- Windows OS (for automated Task Scheduler scripts)
+
+### 2. Install Dependencies
+
+**Backend:**
 ```bash
 pip install -r requirements.txt
+pip install -r STRATEGY_LAB/backend/requirements.txt
 ```
-*Requires `pandas` and `curl_cffi`*
 
-### 2. Build the C++ Engine
+**Frontend:**
+```bash
+cd STRATEGY_LAB/frontend
+npm install
+cd ../..
+```
 
-The core simulation engine is written in C++ for maximum speed. Requires **MSVC** (Visual Studio Build Tools 2019+) and **CMake 3.14+**.
+### 3. Launch the Web Dashboard
 
-**Recommended: use the included batch script (builds all engines at once):**
+**One-Click Start (Windows):**
+Double-click `STRATEGY_LAB/start_dashboard.bat` or run:
 ```powershell
-# Run from the NEW_PROJECT root folder
-& ".\build_engines.bat"
+& ".\STRATEGY_LAB\start_dashboard.bat"
 ```
 
-**Or build manually:**
-```powershell
-cd NEUTRAL_STRADDLE\cpp_engine
-mkdir build
-cd build
-cmake .. "-Dpybind11_DIR=$(python -m pybind11 --cmakedir)"
-cmake --build . --config Release
-```
-
-> **Note:** The double-quotes around `-Dpybind11_DIR=...` are required in PowerShell to prevent argument splitting. The `.pyd` file will be placed directly in the `NEUTRAL_STRADDLE/` folder.
-
-### 3. Run the Full Automated Pipeline
-```powershell
-# From the NEW_PROJECT root folder
-python NEUTRAL_STRADDLE\DAILY_PIPELINE.py
-```
-
-This will:
-- Auto-detect today's date and build the correct data folder path
-- Fetch 61 option strikes + spot price from NSE (parallel, ~6–12s)
-- Validate the nearest Tuesday expiry via NSE API
-- Run the C++ backtest engine (~10–20ms)
-- Save results to `RESULT/NEUTRAL/<MONTH>/V1/result_DDMMYYYY.csv`
-
-### 4. Schedule Daily Runs (Windows Task Scheduler)
-```powershell
-# Run as Administrator once
-PowerShell -ExecutionPolicy Bypass -File NEUTRAL_STRADDLE\schedule_daily.ps1
-```
-This creates a Task Scheduler job that runs the pipeline automatically every trading day at 18:00.
+**Manual Start:**
+- **Backend API**:
+  ```powershell
+  python -m uvicorn STRATEGY_LAB.backend.main:app --host 0.0.0.0 --port 8000 --reload
+  ```
+- **Frontend Dashboard**:
+  ```powershell
+  cd STRATEGY_LAB\frontend
+  npm run dev
+  ```
+Open `http://localhost:5173` in your browser.
 
 ---
 
-## Configuration
+## 🧪 Running Automated Tests
 
-Tweak strategy parameters in `NEUTRAL_STRADDLE/STRATEGY_V1_AUTO.py`:
+Run the test suite to verify P&L calculations, cost deductions, and strategy signatures:
 
-| Parameter | Default | Description |
-|---|---|---|
-| `ENTRY_TIME` | `09:20` | First trade entry slot |
-| `TRADE_INTERVAL` | `5` min | Minutes between entry slots |
-| `HOLD_MINUTES` | `60` | Max hold time per trade |
-| `TAKE_PROFIT_PCT` | `3.0%` | Take profit as % of total capital |
-| `STOP_LOSS_PCT` | `1.0%` | Stop loss as % of total capital |
-| `CAPITAL_PER_TRADE` | `1,00,000` | Capital allocated per trade (2 legs) |
-| `LOT_SIZE` | `65` | NIFTY lot size |
-| `OFFSET_FROM_SPOT` | `0` | Strike offset from ATM (0 = ATM) |
-| `NO_TRADE_WINDOWS` | `10:00–14:00, 14:30–15:30` | No-trade periods |
-| `STRIKES_ABOVE/BELOW_ATM` | `30` | Strikes downloaded each side of ATM |
+```powershell
+python -m pytest STRATEGY_LAB/backend/tests/test_pnl_accuracy.py -v
+```
+
+All 12 test assertions check:
+- Multi-leg P&L math (BUY leg decay vs SELL leg profit)
+- Regulatory transaction cost deductions
+- Realistic SPAN margin vs simple sizing
+- Default configurations & strategy registry health
 
 ---
 
-## Output Format
+## 💰 Transaction Cost & Margin Model
 
-Each result CSV contains one row per executed trade:
+### Indian Market Regulatory Costs
+Calculated per trade in `STRATEGY_LAB/backend/strategies/base.py`:
+- **Brokerage**: ₹20 flat per order (2 orders per leg: Entry + Exit)
+- **STT**: 0.05% charged on sell-side option premium
+- **Exchange Turnover**: 0.053% of total traded premium turnover
+- **GST**: 18% on (Brokerage + Exchange Charges)
+- **Stamp Duty**: 0.003% on buy-side premium
+- **SEBI Fee**: 0.0001% (₹10 / crore) on turnover
+- **Slippage**: ₹1.0 per lot per leg friction
 
-| Column | Description |
-|---|---|
-| `Trade_No` | Sequential trade number |
-| `Entry_Time` | HH:MM when trade was entered |
-| `Exit_Time` | HH:MM when trade was closed |
-| `Exit_Reason` | `TAKE_PROFIT` / `STOP_LOSS` / `INTERVAL` / `MARKET_CLOSE` |
-| `ATM_at_Entry` | ATM strike at entry |
-| `Strike` | Actual strike traded |
-| `CE_Entry` / `CE_Exit` | Call option entry/exit price |
-| `CE_Qty` | Call option quantity |
-| `CE_PnL` | Call leg P&L |
-| `PE_Entry` / `PE_Exit` | Put option entry/exit price |
-| `PE_Qty` | Put option quantity |
-| `PE_PnL` | Put leg P&L |
-| `Net_PnL` | Combined P&L for the trade |
-| `Cumulative_PnL` | Running total P&L |
+### Realistic Margin Model
+- Short legs require ~15% of the underlying strike value per lot (approximating NSE SPAN margin), preventing over-leveraged sizing in SELL strategies.
+- Defined-risk spreads (Bull/Bear spreads, Condors, Butterflies) use defined spread width minus net credit.
 
 ---
 
-## Important Notices
+## 📥 Market Data Acquisition
 
-- **Windows-only**: PowerShell scripts, Task Scheduler, and MSVC compilation are tailored for Windows.
-- **NSE Terms of Service**: This project fetches data from NSE's public option-chain API. Use it for educational and personal research purposes only.
-- **Data Isolation**: Market data (`/DATA/`) and results (`/RESULT/`) are excluded from version control via `.gitignore`. Only the strategy source code is tracked.
-- **Rebuild required**: If you update `CMakeLists.txt` or the `.cpp` files, re-run `build_engines.bat` to recompile.
+To fetch intraday 1-minute spot and option strike data for today:
+```powershell
+python DATA_FETCH\DATA_FETCH_AUTO.py
+```
+This fetches 61 strikes centered at ATM from the NSE API and saves the files into `DATA/<Month>_DATA/<DD_MM_YYYY>/`.
 
 ---
 
-## License
+## ⚖️ License
 
-MIT License. See [`LICENSE`](LICENSE) for details.
+MIT License. See [LICENSE](LICENSE) for details.
