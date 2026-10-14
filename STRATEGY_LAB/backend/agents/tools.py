@@ -88,7 +88,7 @@ def run_backtest_tool(
 
         result = run_backtest(
             strategy=strat,
-            data_folder=folder,
+            data_folder=str(folder),
             expiry_date=expiry,
             params=run_params
         )

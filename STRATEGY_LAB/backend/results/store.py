@@ -176,7 +176,7 @@ def save_backtest(result: dict) -> int:
 
     conn.commit()
     conn.close()
-    return backtest_id
+    return int(backtest_id) if backtest_id is not None else 0
 
 
 def get_backtests(
@@ -293,7 +293,7 @@ def save_agent_insight(insight: dict) -> int:
     conn.commit()
     insight_id = cursor.lastrowid
     conn.close()
-    return insight_id
+    return int(insight_id) if insight_id is not None else 0
 
 
 def get_agent_insights(limit: int = 30) -> list[dict]:

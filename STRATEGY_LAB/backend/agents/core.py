@@ -17,6 +17,8 @@ try:
     from google.genai import types
     HAS_GENAI = True
 except ImportError:
+    genai = None  # type: ignore
+    types = None  # type: ignore
     HAS_GENAI = False
 
 
@@ -55,6 +57,8 @@ class Agent:
 
     def _execute_with_gemini(self, task_description: str, context: str, api_key: str) -> str:
         """Execute task using Google Gemini API with native function calling."""
+        if genai is None or types is None:
+            return self._execute_deterministic_fallback(task_description, context)
         try:
             client = genai.Client(api_key=api_key)
             prompt = task_description
